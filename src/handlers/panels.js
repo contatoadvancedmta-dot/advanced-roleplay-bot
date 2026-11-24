@@ -122,6 +122,7 @@ const HELP = {
   },
   donos: {
     label: 'Donos', emoji: 'crown', lines: [
+      '`/central` — **Central de Controle**: configura tudo por botões',
       '`/admin painel` — gerenciador de staff por botões',
       '`/admin adicionar` — promover membro',
       '`/admin remover` — remover da staff',

@@ -43,23 +43,13 @@ module.exports = {
 
     if (sub === 'criar') {
       if (!(await perms.check(i, 'admin'))) return;
-      const nome = i.options.getString('nome').trim();
-      const sigla = i.options.getString('sigla').trim().toUpperCase();
-      const id = fac.slug(nome);
-      if (store[id] || fac.find(i.guild.id, sigla)) return i.reply({ embeds: [error('Já existe uma facção com esse nome ou sigla.')], flags: EPH });
-      const lider = i.options.getUser('lider');
       await i.deferReply({ flags: EPH });
-      let roleId = null;
-      if (i.options.getBoolean('criar_cargo') !== false) {
-        const role = await i.guild.roles.create({ name: `[${sigla}] ${nome}`, mentionable: true, reason: `Facção criada por ${i.user.tag}` }).catch(() => null);
-        roleId = role?.id ?? null;
-      }
-      store[id] = { id, nome, sigla, tipo: i.options.getString('tipo'), liderId: lider.id, membros: [lider.id], roleId, createdAt: Date.now(), by: i.user.id };
-      db.save();
-      if (roleId) await (await i.guild.members.fetch(lider.id).catch(() => null))?.roles.add(roleId).catch(() => null);
-      sendLog(i.guild, base().setDescription(`🏴 ${i.user} criou a facção **[${sigla}] ${nome}** (líder ${lider})`));
+      const lider = i.options.getUser('lider');
+      const r = await fac.create(i.guild, i.user, { nome: i.options.getString('nome'), sigla: i.options.getString('sigla'), tipo: i.options.getString('tipo'), liderId: lider.id, createRole: i.options.getBoolean('criar_cargo') !== false });
+      if (r.error) return i.editReply({ embeds: [error(r.error)] });
+      sendLog(i.guild, base().setDescription(`🏴 ${i.user} criou a facção **[${r.f.sigla}] ${r.f.nome}** (líder ${lider})`));
       touch(i);
-      return i.editReply({ embeds: [success(`Facção **[${sigla}] ${nome}** criada!${roleId ? ` Cargo <@&${roleId}> criado e entregue ao líder.` : ''}`), fac.infoEmbed(store[id])] });
+      return i.editReply({ embeds: [success(`Facção **[${r.f.sigla}] ${r.f.nome}** criada!${r.f.roleId ? ` Cargo <@&${r.f.roleId}> criado e entregue ao líder.` : ''}`), fac.infoEmbed(r.f)] });
     }
 
     const f = fac.find(i.guild.id, i.options.getString('faccao'));
@@ -67,28 +57,14 @@ module.exports = {
     if (sub === 'info') return i.reply({ embeds: [fac.infoEmbed(f)] });
 
     if (sub === 'membro') {
-      const isLeader = f.liderId === i.user.id;
-      if (!isLeader && !(await perms.check(i, 'suporte'))) return;
+      if (f.liderId !== i.user.id && !(await perms.check(i, 'suporte'))) return;
       const user = i.options.getUser('membro');
       const add = i.options.getString('acao') === 'add';
-      const member = await i.guild.members.fetch(user.id).catch(() => null);
-      if (add) {
-        if (f.membros.includes(user.id)) return i.reply({ embeds: [error(`${user} já é da facção.`)], flags: EPH });
-        const other = Object.values(store).find((x) => x.membros.includes(user.id));
-        if (other) return i.reply({ embeds: [error(`${user} já é da facção **[${other.sigla}]**.`)], flags: EPH });
-        if (config.faccoes?.maxMembers && f.membros.length >= config.faccoes.maxMembers) return i.reply({ embeds: [error(`Limite de ${config.faccoes.maxMembers} membros.`)], flags: EPH });
-        f.membros.push(user.id);
-        if (f.roleId) await member?.roles.add(f.roleId).catch(() => null);
-      } else {
-        if (user.id === f.liderId) return i.reply({ embeds: [error('Não dá para remover o líder. Troque o líder antes.')], flags: EPH });
-        if (!f.membros.includes(user.id)) return i.reply({ embeds: [error(`${user} não é da facção.`)], flags: EPH });
-        f.membros = f.membros.filter((x) => x !== user.id);
-        if (f.roleId) await member?.roles.remove(f.roleId).catch(() => null);
-      }
-      db.save();
+      const r = await fac.setMember(i.guild, f, user.id, add);
+      if (r.error) return i.reply({ embeds: [error(r.error)], flags: EPH });
       touch(i);
       sendLog(i.guild, base().setDescription(`🏴 **[${f.sigla}]** ${i.user} ${add ? 'adicionou' : 'removeu'} ${user}`));
-      return i.reply({ embeds: [success(`${user} ${add ? 'entrou na' : 'saiu da'} **[${f.sigla}] ${f.nome}**. (${f.membros.length} membros)`)] });
+      return i.reply({ embeds: [success(`${r.text} (${f.membros.length} membros)`)] });
     }
 
     if (!(await perms.check(i, 'admin'))) return;
@@ -102,9 +78,7 @@ module.exports = {
       return i.reply({ embeds: [success(`${novo} agora é líder da **[${f.sigla}] ${f.nome}**.`)] });
     }
     if (sub === 'excluir') {
-      if (f.roleId) await i.guild.roles.delete(f.roleId).catch(() => null);
-      delete store[f.id];
-      db.save();
+      await fac.remove(i.guild, f);
       touch(i);
       return i.reply({ embeds: [success(`Facção **[${f.sigla}] ${f.nome}** excluída.`)], flags: EPH });
     }

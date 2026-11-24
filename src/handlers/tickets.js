@@ -298,12 +298,12 @@ async function transcript(channel, t) {
       <div><b style="color:${m.member?.displayHexColor && m.member.displayHexColor !== '#000000' ? m.member.displayHexColor : '#fff'}">${esc(m.member?.displayName ?? m.author.username)}</b>
       ${m.author.bot ? '<span class="bot">BOT</span>' : ''}<span class="t">${new Date(m.createdTimestamp).toLocaleString('pt-BR')}</span></div>
       ${m.content ? `<div class="c">${esc(m.content).replace(/\n/g, '<br>')}</div>` : ''}
-      ${m.embeds.map((em2) => `<div class="e" style="border-color:${em2.hexColor ?? '#f97316'}">${em2.title ? `<b>${esc(em2.title)}</b><br>` : ''}${esc(em2.description ?? '').replace(/\n/g, '<br>')}${(em2.fields ?? []).map((f) => `<div><b>${esc(f.name)}</b><br>${esc(f.value)}</div>`).join('')}</div>`).join('')}
+      ${m.embeds.map((em2) => `<div class="e" style="border-color:${em2.hexColor ?? '#8b5cf6'}">${em2.title ? `<b>${esc(em2.title)}</b><br>` : ''}${esc(em2.description ?? '').replace(/\n/g, '<br>')}${(em2.fields ?? []).map((f) => `<div><b>${esc(f.name)}</b><br>${esc(f.value)}</div>`).join('')}</div>`).join('')}
       ${m.attachments.map((a) => a.contentType?.startsWith('image/') ? `<img class="img" src="${a.url}">` : `<a href="${a.url}">${esc(a.name)}</a>`).join('')}
     </div></div>`).join('');
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Ticket #${t.number}</title><style>
     body{background:#313338;color:#dbdee1;font-family:Segoe UI,Arial,sans-serif;margin:0}
-    header{background:#1e1f22;padding:20px 28px;border-bottom:3px solid #f97316}h1{margin:0;color:#fff;font-size:20px}header p{margin:4px 0 0;color:#949ba4}
+    header{background:#1e1f22;padding:20px 28px;border-bottom:3px solid #8b5cf6}h1{margin:0;color:#fff;font-size:20px}header p{margin:4px 0 0;color:#949ba4}
     .m{display:flex;gap:14px;padding:8px 28px}.m:hover{background:#2e3035}.a{width:40px;height:40px;border-radius:50%}
     .t{color:#949ba4;font-size:12px;margin-left:8px}.bot{background:#5865f2;color:#fff;font-size:10px;padding:1px 4px;border-radius:3px;margin-left:4px}
     .c{margin-top:2px;line-height:1.4}.e{background:#2b2d31;border-left:4px solid;border-radius:4px;padding:10px 14px;margin-top:6px;max-width:520px;font-size:14px}

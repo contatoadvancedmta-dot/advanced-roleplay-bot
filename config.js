@@ -26,7 +26,7 @@ module.exports = {
 
   /**
    * EMBEDS INVISÍVEIS: a barrinha lateral fica da mesma cor do fundo do Discord (some).
-   * Coloque false para voltar a usar as cores (laranja, verde, vermelho...).
+   * Coloque false para voltar a usar as cores (roxo, verde, vermelho...).
    */
   invisibleEmbeds: true,
   invisibleColor: 0x2b2d31, // cor do fundo das embeds no tema escuro do Discord
@@ -35,7 +35,7 @@ module.exports = {
   banners: true,
 
   colors: {
-    primary: 0xf97316,  // laranja Advanced
+    primary: 0x8b5cf6,  // roxo Advanced RP
     success: 0x22c55e,
     error: 0xef4444,
     warning: 0xf59e0b,
@@ -158,14 +158,14 @@ module.exports = {
 
   // Modelos prontos do /anuncio
   announceTemplates: {
-    livre: { label: 'Em branco', emoji: 'announce', color: 'laranja', title: '', text: '' },
+    livre: { label: 'Em branco', emoji: 'announce', color: 'roxo_adv', title: '', text: '' },
     online: { label: 'Cidade online', emoji: 'online', color: 'verde', title: 'A CIDADE ESTÁ ONLINE!',
       text: 'Os portões estão abertos! Entre agora e viva sua história.\n\n**Conectar:** veja em #ip-connect' },
     reinicio: { label: 'Reinício', emoji: 'clock', color: 'amarelo', title: 'Reinício programado',
       text: 'A cidade vai reiniciar em **10 minutos**.\nGuarde seus veículos e finalize suas ações para não perder nada.' },
     manutencao: { label: 'Manutenção', emoji: 'staff', color: 'vermelho', title: 'Cidade em manutenção',
       text: 'Estamos realizando melhorias no servidor.\n\n**Previsão de retorno:** --:--\nAcompanhe as novidades por aqui!' },
-    atualizacao: { label: 'Atualização', emoji: 'level', color: 'laranja', title: 'Nova atualização na cidade',
+    atualizacao: { label: 'Atualização', emoji: 'level', color: 'roxo_adv', title: 'Nova atualização na cidade',
       text: '**Novidades:**\n• \n• \n\n**Correções:**\n• \n\nBom RP a todos!' },
     evento: { label: 'Evento', emoji: 'gift', color: 'roxo', title: 'EVENTO NA CIDADE!',
       text: '**Quando:** --/-- às --:--\n**Onde:** \n**Prêmio:** \n\nNão fiquem de fora!' },

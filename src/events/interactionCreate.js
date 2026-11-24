@@ -31,6 +31,7 @@ const ROUTES = {
   appeal: appeals.handle,
   trate: tickets.rate,
   form: forms.handle,
+  cp: require('../handlers/control').handle,
   ponto: ponto.handle,
   fb: feedback.handle,
   fila: supportQueue.handle,

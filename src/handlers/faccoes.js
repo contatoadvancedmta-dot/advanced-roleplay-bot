@@ -39,4 +39,51 @@ function listEmbed(guild) {
   return withBanner({ embeds: [embed] }, embed, 'faccoes');
 }
 
-module.exports = { TYPES, store, slug, find, infoEmbed, listEmbed };
+/** Cria facção. Retorna { f } ou { error } */
+async function create(guild, by, { nome, sigla, tipo, liderId, createRole = true }) {
+  const st = store(guild.id);
+  nome = nome.trim();
+  sigla = sigla.trim().toUpperCase();
+  const id = slug(nome);
+  if (!id || !sigla) return { error: 'Preencha nome e sigla.' };
+  if (!TYPES[tipo]) return { error: 'Tipo inválido.' };
+  if (st[id] || find(guild.id, sigla)) return { error: 'Já existe uma facção com esse nome ou sigla.' };
+  let roleId = null;
+  if (createRole) {
+    const role = await guild.roles.create({ name: `[${sigla}] ${nome}`, mentionable: true, reason: `Facção criada por ${by.tag ?? by.id}` }).catch(() => null);
+    roleId = role?.id ?? null;
+  }
+  st[id] = { id, nome, sigla, tipo, liderId, membros: [liderId], roleId, createdAt: Date.now(), by: by.id };
+  db.save();
+  if (roleId) await (await guild.members.fetch(liderId).catch(() => null))?.roles.add(roleId).catch(() => null);
+  return { f: st[id] };
+}
+
+/** Adiciona/remove membro. Retorna texto do resultado (ou { error }) */
+async function setMember(guild, f, userId, add) {
+  const st = store(guild.id);
+  const member = await guild.members.fetch(userId).catch(() => null);
+  if (add) {
+    if (f.membros.includes(userId)) return { error: `<@${userId}> já é da facção.` };
+    const other = Object.values(st).find((x) => x.membros.includes(userId));
+    if (other) return { error: `<@${userId}> já é da facção **[${other.sigla}]**.` };
+    if (config.faccoes?.maxMembers && f.membros.length >= config.faccoes.maxMembers) return { error: `Limite de ${config.faccoes.maxMembers} membros.` };
+    f.membros.push(userId);
+    if (f.roleId) await member?.roles.add(f.roleId).catch(() => null);
+  } else {
+    if (userId === f.liderId) return { error: 'Não dá para remover o líder. Troque o líder antes.' };
+    if (!f.membros.includes(userId)) return { error: `<@${userId}> não é da facção.` };
+    f.membros = f.membros.filter((x) => x !== userId);
+    if (f.roleId) await member?.roles.remove(f.roleId).catch(() => null);
+  }
+  db.save();
+  return { text: `<@${userId}> ${add ? 'entrou na' : 'saiu da'} **[${f.sigla}] ${f.nome}**.` };
+}
+
+async function remove(guild, f) {
+  if (f.roleId) await guild.roles.delete(f.roleId).catch(() => null);
+  delete store(guild.id)[f.id];
+  db.save();
+}
+
+module.exports = { TYPES, store, slug, find, infoEmbed, listEmbed, create, setMember, remove };

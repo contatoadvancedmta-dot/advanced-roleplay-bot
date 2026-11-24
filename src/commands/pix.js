@@ -15,7 +15,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const COLOR_PRESETS = [
-  ['Preto', '#111111'], ['Laranja Advanced', '#c2410c'], ['Laranja claro (moldura)', '#f97316'], ['Azul escuro', '#1e3a8a'],
+  ['Preto', '#111111'], ['Roxo Advanced', '#5b21b6'], ['Roxo claro (moldura)', '#8b5cf6'], ['Laranja', '#c2410c'], ['Azul escuro', '#1e3a8a'],
   ['Azul', '#3b82f6'], ['Roxo escuro', '#4c1d95'], ['Roxo', '#8b5cf6'], ['Verde escuro', '#14532d'], ['Verde', '#22c55e'],
   ['Vermelho escuro', '#7f1d1d'], ['Vermelho', '#ef4444'], ['Cinza escuro', '#27272a'], ['Branco', '#ffffff'], ['Creme', '#fff7ed']
 ];
@@ -196,3 +196,6 @@ module.exports = {
     await i.reply({ embeds: [embed], files: [file], flags: EPH });
   }
 };
+
+module.exports.configEmbed = configEmbed;
+module.exports.configModal = configModal;

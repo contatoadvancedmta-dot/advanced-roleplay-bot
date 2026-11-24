@@ -6,7 +6,7 @@ const path = require('node:path');
 const QRCode = require('qrcode');
 const { PNG } = require('pngjs');
 
-const DEFAULTS = { dark: '#111111', light: '#ffffff', style: 'quadrado', logo: 'bot', frame: '#f97316' };
+const DEFAULTS = { dark: '#111111', light: '#ffffff', style: 'quadrado', logo: 'bot', frame: '#8b5cf6' };
 const BOT_LOGO = path.join(__dirname, '..', '..', 'assets', 'banners', 'avatar-bot.png');
 const customLogoPath = (guildId) => path.join(__dirname, '..', '..', 'data', `pix-logo-${guildId}.png`);
 

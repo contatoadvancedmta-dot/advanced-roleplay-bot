@@ -138,36 +138,8 @@ module.exports = {
     const EPH = MessageFlags.Ephemeral;
 
     if (SECTIONS[sub]) {
-      const tipo = interaction.options.getString('tipo');
-      const ch = interaction.options.getChannel('canal');
-      g.channels[tipo] = ch.id; db.save();
-      const notes = [];
-
-      if (sub === 'staff' && interaction.options.getBoolean('trancar') !== false && ch.permissionOverwrites) {
-        const roles = await lockToStaff(interaction, ch, g);
-        notes.push(`${e.lock} Canal trancado: só ${roles.length ? roles.map((r) => `<@&${r}>`).join(', ') : 'quem é admin'} vê.`);
-        if (!roles.length) notes.push(`${e.warn} Nenhum cargo de staff configurado — use \`/setup cargo\` (Suporte, Moderador, Admin) e rode de novo.`);
-      }
-      const AUTO_PANEL = {
-        sugestoes_staff: () => require('../handlers/suggestions').staffPanel(),
-        ausencias: () => require('../handlers/forms').panel('ausencia'),
-        feedback_staff: () => require('../handlers/feedback').panel()
-      };
-      if (AUTO_PANEL[tipo] && ch.send) {
-        await ch.send(AUTO_PANEL[tipo]()).catch(() => null);
-        notes.push(`${e.check} Painel com o botão já foi enviado lá.`);
-      }
-      if (sub === 'ranking') {
-        require('../handlers/rankingBoard').update(interaction.client).catch(() => null);
-        notes.push(`${e.check} Ranking postado — atualiza sozinho.`);
-      }
-      if (tipo === 'status') {
-        g.status = {};
-        db.save();
-        require('../handlers/fivem').tick(interaction.client).catch(() => null);
-        notes.push(`${e.check} Status postado — atualiza a cada minuto.`);
-      }
-      return interaction.reply({ embeds: [success(`**${CHANNELS[tipo]}** → ${ch}${notes.length ? `\n${notes.join('\n')}` : ''}`, 'Configurado')], flags: EPH });
+      const notes = await applyChannel(interaction, sub, interaction.options.getString('tipo'), interaction.options.getChannel('canal'), interaction.options.getBoolean('trancar') !== false);
+      return interaction.reply({ embeds: [success(notes.join('\n'), 'Configurado')], flags: EPH });
     }
     if (sub === 'cargo') {
       const tipo = interaction.options.getString('tipo');
@@ -175,6 +147,12 @@ module.exports = {
       g.roles[tipo] = role.id; db.save();
       return interaction.reply({ embeds: [success(`**${ROLES[tipo]}** definido como ${role}.`)], flags: EPH });
     }
+    return interaction.reply({ embeds: [configEmbed(interaction.guild)], flags: EPH });
+  }
+};
+
+function configEmbed(guild) {
+    const g = db.guild(guild.id);
     const fmt = (map, store, mention) => Object.entries(map)
       .map(([k, label]) => `${store[k] ? e.check : e.cross} ${label}: ${store[k] ? mention(store[k]) : '`não definido`'}`).join('\n');
     const embed = base().setTitle(`⚙️ Configuração — ${config.brand.name}`)
@@ -183,6 +161,47 @@ module.exports = {
         ...Object.entries(SECTIONS).map(([k, sec]) => ({ name: `${sec.title} — /setup ${k}`, value: fmt(sec.items, g.channels, (id) => `<#${id}>`).slice(0, 1024) })),
         { name: '👥 Cargos — /setup cargo', value: fmt(ROLES, g.roles, (id) => `<@&${id}>`).slice(0, 1024) }
       );
-    return interaction.reply({ embeds: [embed], flags: EPH });
+    return embed;
+}
+
+/**
+ * Salva um canal e faz o que cada tipo precisa (trancar, mandar painel, postar ranking/status).
+ * Usado pelo /setup e pela Central de Controle. Retorna as linhas de resultado.
+ */
+async function applyChannel(ctx, section, tipo, ch, lock = true) {
+  const g = db.guild(ctx.guild.id);
+  g.channels[tipo] = ch.id;
+  db.save();
+  const notes = [`**${CHANNELS[tipo]}** → ${ch}`];
+  if (section === 'staff' && lock && ch.permissionOverwrites) {
+    const roles = await lockToStaff(ctx, ch, g);
+    notes.push(`${e.lock} Canal trancado: só ${roles.length ? roles.map((r) => `<@&${r}>`).join(', ') : 'quem é admin'} vê.`);
+    if (!roles.length) notes.push(`${e.warn} Nenhum cargo de staff configurado — configure Suporte, Moderador e Admin nos cargos e repita.`);
   }
-};
+  const AUTO_PANEL = {
+    sugestoes_staff: () => require('../handlers/suggestions').staffPanel(),
+    ausencias: () => require('../handlers/forms').panel('ausencia'),
+    feedback_staff: () => require('../handlers/feedback').panel()
+  };
+  if (AUTO_PANEL[tipo] && ch.send) {
+    await ch.send(AUTO_PANEL[tipo]()).catch(() => null);
+    notes.push(`${e.check} Painel com o botão já foi enviado lá.`);
+  }
+  if (section === 'ranking') {
+    require('../handlers/rankingBoard').update(ctx.client).catch(() => null);
+    notes.push(`${e.check} Postado — atualiza sozinho.`);
+  }
+  if (tipo === 'status') {
+    g.status = {};
+    db.save();
+    require('../handlers/fivem').tick(ctx.client).catch(() => null);
+    notes.push(`${e.check} Status postado — atualiza a cada minuto.`);
+  }
+  return notes;
+}
+
+module.exports.SECTIONS = SECTIONS;
+module.exports.ROLES = ROLES;
+module.exports.TYPES_FOR = TYPES_FOR;
+module.exports.applyChannel = applyChannel;
+module.exports.configEmbed = configEmbed;

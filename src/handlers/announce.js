@@ -19,12 +19,13 @@ const drafts = new Map(); // rascunhos em memória: guildId:userId -> draft
 
 const COLORS = {
   invisivel: { label: 'Invisível (sem cor)', hex: config.invisibleColor, emoji: '⬛' },
-  laranja: { label: 'Laranja Advanced', hex: config.colors.primary, emoji: '🟠' },
+  roxo_adv: { label: 'Roxo Advanced', hex: config.colors.primary, emoji: '🟣' },
+  laranja: { label: 'Laranja', hex: 0xf97316, emoji: '🟠' },
   verde: { label: 'Verde', hex: 0x22c55e, emoji: '🟢' },
   vermelho: { label: 'Vermelho', hex: 0xef4444, emoji: '🔴' },
   amarelo: { label: 'Amarelo', hex: 0xf59e0b, emoji: '🟡' },
   azul: { label: 'Azul', hex: 0x3b82f6, emoji: '🔵' },
-  roxo: { label: 'Roxo', hex: 0x8b5cf6, emoji: '🟣' },
+  roxo: { label: 'Lilás', hex: 0xc084fc, emoji: '💜' },
   escuro: { label: 'Escuro', hex: 0x2b2d31, emoji: '⚫' }
 };
 
@@ -33,7 +34,7 @@ const key = (i) => `${i.guild.id}:${i.user.id}`;
 function newDraft(i, templateId, channelId) {
   const t = config.announceTemplates[templateId] ?? config.announceTemplates.livre;
   const d = {
-    title: t.title, text: t.text, color: config.invisibleEmbeds ? 'invisivel' : t.color ?? 'laranja', emoji: t.emoji ?? 'announce',
+    title: t.title, text: t.text, color: config.invisibleEmbeds ? 'invisivel' : t.color ?? 'roxo_adv', emoji: t.emoji ?? 'announce',
     image: '', buttonLabel: '', buttonUrl: '', ping: 'none',
     channelId: channelId ?? db.guild(i.guild.id).channels.anuncios ?? i.channel.id
   };

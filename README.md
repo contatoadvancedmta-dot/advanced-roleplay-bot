@@ -1,6 +1,6 @@
 # 🏙️ Bot Advanced Roleplay
 
-Bot oficial do **Advanced Roleplay** (MTA:SA): embeds invisíveis, banners próprios, emojis do Advanced e tudo por **botões e formulários**.
+Bot oficial do **Advanced Roleplay** (MTA:SA) — identidade **roxa**: embeds invisíveis, banners próprios, emojis do Advanced e tudo por **botões e formulários**.
 
 ## Instalação (hospedagem com GitHub)
 1. Crie o bot em https://discord.com/developers/applications → aba **Bot** → ative **Server Members Intent** e **Message Content Intent**.
@@ -14,7 +14,11 @@ GUILD_ID=id_do_servidor
 ```
 5. Ligue. Os comandos são registrados sozinhos.
 
-## Primeiros passos no Discord
+## Primeiros passos no Discord — tudo por botões
+Use **`/central`** (ou deixe o painel fixo com `/painel tipo:Central de Controle` num canal da staff).
+A Central configura **canais, cargos, painéis, cidade (IP/progresso/contadores), PIX, facções, anúncios e equipe** só com botões e menus.
+
+Se preferir comandos:
 1. `/cidade ip endereco:IP:PORTA` — IP da cidade (status, contador, avisos de crash e /ip)
 2. `/setup cargo` — Suporte, Moderador, Administrador, cargo do edital e as tags
 3. `/setup canal` · `/setup staff` · `/setup ranking` · `/setup atendimento` · `/setup cidade`
