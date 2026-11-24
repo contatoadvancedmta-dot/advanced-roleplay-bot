@@ -1,0 +1,6 @@
+*.zip
+.env
+data/
+node_modules
+node_modules/
+previa-*.png
