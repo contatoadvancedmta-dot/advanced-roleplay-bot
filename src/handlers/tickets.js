@@ -43,7 +43,28 @@ function panel() {
   return withBanner({ embeds: [embed], components: [new ActionRowBuilder().addComponents(select)] }, embed, 'tickets');
 }
 
-const staffRoleIds = (g) => Object.keys(config.levels).map((l) => g.roles[l]).filter(Boolean);
+// Cargos que veem os tickets: Suporte, Moderador, Admin, cargo geral de staff e o cargo extra de tickets
+const staffRoleIds = (g) => [...new Set([...Object.keys(config.levels), 'staff', 'ticket'].map((k) => g.roles[k]).filter(Boolean))];
+// Pessoas adicionadas pelo gerenciador de staff (/admin) — veem os tickets mesmo sem ter o cargo
+const staffUserIds = (g) => Object.keys(g.admins ?? {});
+const STAFF_ALLOW = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks];
+
+/** Libera a staff atual em todos os tickets abertos (ao configurar cargo ou adicionar alguém na staff) */
+async function syncStaffAccess(guild) {
+  const g = db.guild(guild.id);
+  const ids = [...staffRoleIds(g), ...staffUserIds(g)];
+  let updated = 0;
+  for (const channelId of Object.keys(g.tickets)) {
+    const ch = guild.channels.cache.get(channelId);
+    if (!ch) continue;
+    for (const id of ids) {
+      if (ch.permissionOverwrites.cache.get(id)?.allow.has(PermissionFlagsBits.ViewChannel)) continue;
+      await ch.permissionOverwrites.edit(id, { ViewChannel: true, SendMessages: true, ReadMessageHistory: true, AttachFiles: true, EmbedLinks: true }).catch(() => null);
+    }
+    updated++;
+  }
+  return updated;
+}
 const getTicket = (interaction) => db.guild(interaction.guild.id).tickets[interaction.channel.id];
 
 /* ───────────── Painel de controle dentro do ticket ───────────── */
@@ -115,7 +136,8 @@ async function open(interaction) {
     { id: interaction.guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
     { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.EmbedLinks] },
     { id: interaction.client.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.EmbedLinks] },
-    ...staffRoleIds(g).map((id) => ({ id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.AttachFiles] }))
+    ...staffRoleIds(g).map((id) => ({ id, allow: STAFF_ALLOW })),
+    ...staffUserIds(g).filter((id) => interaction.guild.members.cache.has(id) && id !== interaction.user.id).map((id) => ({ id, allow: STAFF_ALLOW }))
   ];
 
   const channel = await interaction.guild.channels.create({
@@ -411,4 +433,4 @@ async function handle(interaction) {
   if (action === 'closesubmit') return close(interaction, t);
 }
 
-module.exports = { handle, panel, rate };
+module.exports = { handle, panel, rate, syncStaffAccess, staffRoleIds };

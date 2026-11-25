@@ -195,10 +195,18 @@ async function handle(i) {
     case 'role': return i.update(rolesPage(guild));
     case 'rolekey': return i.update(page(`👥 ${setup().ROLES[i.values[0]]}`, 'Escolha o cargo:', [
       row(new RoleSelectMenuBuilder().setCustomId(`cp:roleset:${i.values[0]}`).setPlaceholder('Escolha o cargo')), row(back('cp:role'))]));
-    case 'roleset':
+    case 'roleset': {
       g.roles[a] = i.values[0];
       db.save();
+      let extra = '';
+      if ([...Object.keys(config.levels), 'staff', 'ticket'].includes(a)) {
+        await i.deferUpdate();
+        const n = await require('./tickets').syncStaffAccess(guild);
+        extra = `\n${e.ticket} Esse cargo agora vê os tickets${n ? ` (inclusive os **${n}** abertos)` : ''}.`;
+        return i.editReply(done(`**${setup().ROLES[a]}** → <@&${i.values[0]}>${extra}`, 'cp:role'));
+      }
       return i.update(done(`**${setup().ROLES[a]}** → <@&${i.values[0]}>`, 'cp:role'));
+    }
 
     /* painéis */
     case 'panel': return i.update(panelsPage());

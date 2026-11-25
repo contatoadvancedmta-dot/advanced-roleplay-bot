@@ -95,6 +95,7 @@ const ROLES = {
   verificado: 'Cargo dado ao se verificar',
   whitelist: 'Cargo de whitelist aprovada',
   staff: 'Cargo geral de staff',
+  ticket: 'Cargo extra que vê os tickets',
   ...Object.fromEntries(Object.entries(config.levels).map(([k, v]) => [k, `Cargo de ${v.label}`])),
   edital_aprovado: 'Cargo dado a quem passa no edital',
   ...Object.fromEntries(config.tags.map((t) => [`tag_${t.id}`, `Tag: ${t.label}`]))
@@ -145,7 +146,12 @@ module.exports = {
       const tipo = interaction.options.getString('tipo');
       const role = interaction.options.getRole('cargo');
       g.roles[tipo] = role.id; db.save();
-      return interaction.reply({ embeds: [success(`**${ROLES[tipo]}** definido como ${role}.`)], flags: EPH });
+      if (![...Object.keys(config.levels), 'staff', 'ticket'].includes(tipo)) {
+        return interaction.reply({ embeds: [success(`**${ROLES[tipo]}** definido como ${role}.`)], flags: EPH });
+      }
+      await interaction.deferReply({ flags: EPH });
+      const n = await require('../handlers/tickets').syncStaffAccess(interaction.guild);
+      return interaction.editReply({ embeds: [success(`**${ROLES[tipo]}** definido como ${role}.\n${e.ticket} ${role} agora vê os tickets${n ? ` (inclusive os **${n}** que estão abertos)` : ''}.`)] });
     }
     return interaction.reply({ embeds: [configEmbed(interaction.guild)], flags: EPH });
   }

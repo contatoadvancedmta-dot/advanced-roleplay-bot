@@ -72,6 +72,7 @@ async function setLevel(interaction, userId, level) {
 
   g.admins[userId] = { level, addedBy: interaction.user.id, addedAt: Date.now() };
   db.save();
+  require('./tickets').syncStaffAccess(interaction.guild).catch(() => null); // já vê os tickets abertos
 
   const label = config.levels[level].label;
   sendLog(interaction.guild, base(config.colors.success).setTitle(`${e.crown} Staff atualizada`)
@@ -93,6 +94,12 @@ async function removeStaff(interaction, userId) {
   }
   delete g.admins[userId];
   db.save();
+  // tira o acesso individual dos tickets abertos (quem tiver cargo de staff continua vendo pelo cargo)
+  for (const channelId of Object.keys(g.tickets ?? {})) {
+    const ch = interaction.guild.channels.cache.get(channelId);
+    const t = g.tickets[channelId];
+    if (ch && t.ownerId !== userId && !(t.members ?? []).includes(userId)) await ch.permissionOverwrites.delete(userId).catch(() => null);
+  }
   sendLog(interaction.guild, base(config.colors.error).setTitle(`${e.crown} Staff removida`)
     .setDescription(`<@${userId}> foi removido da staff por ${interaction.user}`));
   return success(`<@${userId}> foi removido da staff.`, 'Staff removida');
