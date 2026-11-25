@@ -10,6 +10,12 @@
  *  Emoji animado fica assim: <a:nome:ID>
  */
 module.exports = {
+  // IDs fixos do bot e do servidor (o .env só precisa do DISCORD_TOKEN; se o .env tiver, ele vale)
+  discord: {
+    clientId: '1574877223876431895', // Application ID do bot Advanced RP
+    guildId: '1251348499035979788'   // servidor Advanced Roleplay
+  },
+
   // IDs dos DONOS (acesso total, gerenciam os administradores)
   owners: [
     // '123456789012345678',

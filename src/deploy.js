@@ -5,7 +5,10 @@ require('dotenv').config({
 });
 const { REST, Routes } = require('discord.js');
 
-const { DISCORD_TOKEN, CLIENT_ID, GUILD_ID } = process.env;
+const cfgIds = require('../config').discord ?? {};
+const { DISCORD_TOKEN } = process.env;
+const CLIENT_ID = process.env.CLIENT_ID || cfgIds.clientId;
+const GUILD_ID = process.env.GUILD_ID || cfgIds.guildId;
 const commands = fs.readdirSync(path.join(__dirname, 'commands')).filter((f) => f.endsWith('.js'))
   .flatMap((f) => [].concat(require(`./commands/${f}`)).map((c) => c.data.toJSON()));
 

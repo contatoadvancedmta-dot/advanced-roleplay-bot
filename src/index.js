@@ -20,6 +20,11 @@ for (const file of envFiles) {
   });
   console.log(`[Advanced]   ${file}: ${info.length ? info.join(' | ') : 'arquivo vazio'}`);
 }
+// IDs do config.js entram quando o .env não tiver
+const cfgIds = require('../config').discord ?? {};
+process.env.CLIENT_ID ||= cfgIds.clientId || '';
+process.env.GUILD_ID ||= cfgIds.guildId || '';
+console.log(`[Advanced] Bot ${process.env.CLIENT_ID || '?'} • Servidor ${process.env.GUILD_ID || '?'}`);
 // aceita variações comuns do nome
 process.env.DISCORD_TOKEN ||= process.env.TOKEN || process.env.BOT_TOKEN || process.env.DISCORD_BOT_TOKEN || '';
 if (!process.env.DISCORD_TOKEN.trim()) {
