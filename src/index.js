@@ -1,14 +1,22 @@
 console.log('[Advanced] Iniciando o bot...');
 const fs = require('node:fs');
 const path = require('node:path');
-// procura o .env na pasta atual, na pasta do projeto e na raiz do servidor (hospedagens)
-require('dotenv').config({
-  path: [process.cwd(), path.join(__dirname, '..'), path.join(__dirname, '..', '..')].map((d) => path.join(d, '.env')).filter((p) => fs.existsSync(p)),
-  quiet: true
-});
-const envFiles = [...new Set([process.cwd(), path.join(__dirname, '..'), path.join(__dirname, '..', '..')].map((d) => path.join(d, '.env')))].filter((p) => fs.existsSync(p));
+// procura o arquivo de configuração na pasta atual, na pasta do projeto e na raiz do servidor (hospedagens).
+// Aceita .env, env, env.txt e .env.txt (o Windows às vezes coloca .txt sozinho)
+const DIRS = [...new Set([process.cwd(), path.join(__dirname, '..'), path.join(__dirname, '..', '..')])];
+const ENV_NAMES = ['.env', 'env', 'env.txt', '.env.txt'];
+const envFiles = DIRS.flatMap((d) => ENV_NAMES.map((n) => path.join(d, n))).filter((p) => fs.existsSync(p));
+require('dotenv').config({ path: envFiles, quiet: true });
+
+// token.txt: arquivo só com o token dentro (para hospedagens que não deixam criar .env)
+const tokenFile = DIRS.map((d) => path.join(d, 'token.txt')).find((p) => fs.existsSync(p));
+if (tokenFile && !process.env.DISCORD_TOKEN) {
+  const raw = fs.readFileSync(tokenFile, 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/).map((l) => l.trim()).find((l) => l && !l.startsWith('#')) ?? '';
+  process.env.DISCORD_TOKEN = raw.includes('=') ? raw.split('=').slice(1).join('=').trim().replace(/^['"]|['"]$/g, '') : raw.replace(/^['"]|['"]$/g, '');
+  console.log(`[Advanced] Token lido de ${tokenFile} (${process.env.DISCORD_TOKEN.length} caracteres)`);
+}
 console.log(`[Advanced] Pasta: ${process.cwd()}`);
-console.log(`[Advanced] Arquivo .env: ${envFiles.length ? envFiles.join(', ') : 'NÃO ENCONTRADO'}`);
+console.log(`[Advanced] Arquivo .env: ${envFiles.length ? envFiles.join(', ') : 'NÃO ENCONTRADO'}${tokenFile ? ` • token.txt: ${tokenFile}` : ''}`);
 // Diagnóstico: mostra só os NOMES das variáveis de cada .env (nunca os valores)
 for (const file of envFiles) {
   const lines = fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/).filter((l) => l.trim() && !l.trim().startsWith('#'));
@@ -28,8 +36,9 @@ console.log(`[Advanced] Bot ${process.env.CLIENT_ID || '?'} • Servidor ${proce
 // aceita variações comuns do nome
 process.env.DISCORD_TOKEN ||= process.env.TOKEN || process.env.BOT_TOKEN || process.env.DISCORD_BOT_TOKEN || '';
 if (!process.env.DISCORD_TOKEN.trim()) {
-  console.error('❌ DISCORD_TOKEN está vazio ou não existe. No .env deve ter uma linha assim (sem espaços e sem aspas):');
-  console.error('   DISCORD_TOKEN=seu_token_aqui');
+  console.error('❌ Token não encontrado. Faça UMA destas opções no Gerenciador de arquivos (pasta principal):');
+  console.error('   1) arquivo  token.txt  com só o token dentro');
+  console.error('   2) arquivo  .env  com a linha  DISCORD_TOKEN=seu_token');
   process.exit(1);
 }
 console.log(`[Advanced] Token encontrado (${process.env.DISCORD_TOKEN.length} caracteres). Carregando comandos...`);

@@ -1,6 +1,10 @@
 *.zip
 .env
+.env.txt
 data/
+env
+env.txt
 node_modules
 node_modules/
 previa-*.png
+token.txt
